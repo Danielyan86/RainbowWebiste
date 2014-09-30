@@ -1,0 +1,188 @@
+{% extends "base_own.html" %}
+
+{% load i18n %}
+{% block head_title %}{% trans "雨欣珠宝" %}{% endblock %}
+{% block body_class %}home{% endblock %}
+{% block banner %}  {% endblock %}
+{% block body_base %}
+
+<script src="http://code.jquery.com/jquery-latest.js"></script>
+<script type="text/javascript" >
+	var current_page = 1;
+	var shape_dict = {"cushion":"垫形","round":"圆形","emerald":"祖母绿", "oval":"椭圆", "pear":"梨形", "heart":"心形", "marquise":"马眼形","princess":"公主方", "other":"其他"};
+	
+	function click_search_button()
+	{
+		current_page = 1;
+		page_form = '<input type="hidden" name="page" value="1"/>';
+		$('#SearchPage').html(page_form);
+		$("#Dia_parameter").submit();
+
+	}
+	
+	function sumbmit_page(page_number, last_page)
+	{
+		// alert(last_page);
+		var last_page = parseInt(last_page);
+		var page_number = parseInt(page_number);
+		if (page_number==-1 && current_page > 1)
+		{
+			current_page = parseInt(current_page) - 1;
+		}
+		else if (page_number==-2 && current_page < last_page)
+		{
+			current_page = parseInt(current_page) + 1;
+		}
+		else
+		{
+			current_page = parseInt(page_number);
+		}
+		page_form = '<input type="hidden" name="page" value="' + current_page.toString() +'"/>';
+		// $("#Dia_parameter").append(page_form) ;
+		$('#SearchPage').html(page_form);
+		// submit_form_ajax();
+		$("#Dia_parameter").submit();
+		
+	}
+	
+	//send the sumbit to the server as AJAX method
+	$(document).ready(function() {
+        $('#Dia_parameter').submit(
+        	function() { // catch the form's submit event
+        	// alert("enter the ajax function");
+            	$.ajax({ // create an AJAX call...
+	                data: $(this).serialize(), // get the form data
+	                type: $(this).attr('method'), // GET or POST
+	                url: $(this).attr('action'), // the file to call; send the data to server
+	                success:function(responseDate) { // on success.. get respose from the server
+	                if (responseDate.results == "empty") {
+	                	$('#search_result').html("");
+	                }
+	                else {
+	                search_content = "";
+      			    DiamondsNumberInPage = 20;
+      			    if (responseDate.total_num < DiamondsNumberInPage)
+      			    {
+      			    	DiamondsNumberInPage = responseDate.total_num-1;
+      			    }
+      			    for (var i=0; i<DiamondsNumberInPage; i++)
+					{
+						search_content = search_content + "<tr>";
+						search_content = search_content + "<td>" + responseDate.results[i].shape + "</td>";
+						search_content = search_content + "<td>" + responseDate.results[i].zsh + "</td>";
+						search_content = search_content + "<td>" + responseDate.results[i].cert + "</td>";
+						search_content = search_content + "<td>" + responseDate.results[i].weight + "</td>";
+						search_content = search_content + "<td>" + responseDate.results[i].color + "</td>";
+						search_content = search_content + "<td>" + responseDate.results[i].purity + "</td>";
+						search_content = search_content + "<td>" + responseDate.results[i].cut + "</td>";
+						search_content = search_content + "<td>" + responseDate.results[i].polish + "</td>";
+						search_content = search_content + "<td>" + responseDate.results[i].sym + "</td>";
+						search_content = search_content + "<td>" + responseDate.results[i].flo + "</td>";
+						search_content = search_content + "<td>" + "￥" + responseDate.results[i].price + "</td>";
+						search_content = search_content + "</tr>";	
+					}
+      			   // alert(search_content);
+                   $('#search_result').html(search_content);             // update the DIV with response
+                   // alert(responseDate.total_num);
+                   $("#total_number").html(responseDate.total_num + "颗钻石 ");
+                   
+                   CurrentPage = responseDate.current_page + "/" + responseDate.page + "页";
+                   $("#CurrentPage").html(CurrentPage);
+                   //update the pages number show
+                   PagesNumberContent = '<li><a href="javascript:sumbmit_page(-1,'+ responseDate.page +');">上一页</a></li>';
+                   PagesNumberContent = PagesNumberContent + responseDate.page_js_html;
+                   PagesNumberContent = PagesNumberContent + '<li><a href="javascript:sumbmit_page(-2,'+ responseDate.page +');">下一页</a></li>';
+                   $("#PagesNumber").html(PagesNumberContent);
+	                }
+                }
+            });
+            return false;  // avoid to execute the actual submit of the form.
+        });
+    }); // ready(function{}) end mark
+</script>
+
+<div class="container-fluid">
+	<div class="row-fluid">
+		
+		<!-- The first column -->
+		<div class="span1"> </div>
+		
+		<!-- second column, main content -->
+		<div class="span10"> 
+		<!-- picture -->
+		<img class="img-polaroid" src="/static_own/pic/search_order_cover.png" />
+		<img class="img-polaroid" src="/static_own/pic/search_order_flow.png" width="1200" />
+		
+
+
+
+      {% include "_search_bar.html" %}
+	
+	<div class="bs-docs-example">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th> 形状 </th>
+              <th> 证书号</th>
+              <th> 证书 </th>
+              <th> 重量 /克拉</th>
+              <th> 颜色 </th>
+              <th> 净度 </th>
+              <th> 切工 </th>
+              <th> 抛光 </th>
+              <th> 对称 </th>
+              <th> 荧光 </th>
+              <th> Rainbow价格 </th>
+            </tr>
+          </thead> <!-- end tag for table head -->
+          
+          <tbody id="search_result">
+          	{% for item in results %}
+                <tr>
+                  <td> {{item.shape}} </td>
+                  <td> {{item.zsh}}</td>
+                  <td> {{item.cert}}</td>
+                  <td>{{item.weight}}</td>
+                  <td>{{item.color}}</td>
+                  <td>{{item.purity}}  </td>
+                  <td>{{item.cut}}  </td>
+                  <td>{{item.polish}}</td>
+                  <td>{{item.sym}}</td>
+                  <td>{{item.flo}}</td>
+                  <td>￥{{item.price}}</td>
+                </tr>
+            {% endfor %}
+            
+          </tbody> <!-- end tag for table content -->
+        </table> <!-- ./table table-striped -->
+        
+        	<!-- 分页 -->
+            <div class="pagination pagination-large">
+
+			    <ul id="PageSelection">
+					<li><a id="total_number">{{total_num}} 颗钻石 </a></li>
+					<li><a id="CurrentPage">{{current_page}}/{{page}} 页</a></li>
+				</ul>
+				
+				<ul id="PagesNumber">
+					<li><a href="javascript:sumbmit_page(-1,{{page}});">上一页</a></li>
+					{% for i in split_page_number %}
+						<li><a href="javascript:sumbmit_page({{i}},{{page}});"> {{i}} </a></li>
+					{% endfor %}
+			
+					<li><a href="javascript:sumbmit_page(-2,{{page}});">下一页</a></li>
+
+			    </ul>
+			    
+		    </div>  <!-- ./pagination -->
+	 	</div>  <!-- ./table -->
+						
+	</div> <!-- ./span10 -->
+	
+		<div class="span1"> </div> <!-- ./span1 -->
+		
+	</div>   <!-- end for fulid -->
+</div> <!-- end for containter -->
+
+
+{% endblock %}
